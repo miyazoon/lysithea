@@ -7,7 +7,6 @@ if (window.location.hostname === 'job.cloud.lysithea.jp') {
     let titleElement: HTMLElement | null = document.getElementById("funcBar-title");
     let title = titleElement ? titleElement.textContent : "";
     switch (title) {
-        /** 個人 */
         case '勤休内容登録':
             // 勤怠自動入力セレクトボックスを配置.
             const inputAssist: InputAssist = new InputAssist()
