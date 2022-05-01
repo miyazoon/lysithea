@@ -1,4 +1,4 @@
-export class Input {
+export class InputAssist {
 
     private _div: HTMLDivElement = document.createElement("div");
     private _div2: HTMLDivElement = document.createElement("div");
@@ -12,7 +12,7 @@ export class Input {
     private _start: HTMLSelectElement = document.createElement("select");
     private _end: HTMLSelectElement = document.createElement("select");
     private _telework: HTMLInputElement = document.createElement("input");
-    private _button: HTMLButtonElement = document.createElement("button");
+    private _button: HTMLInputElement = document.createElement("input");
 
     constructor() {
         this.setStartElement();
@@ -92,79 +92,76 @@ export class Input {
     }
 
     private setButton(): void {
-        this._button.innerText = "勤怠入力"
-        this._button.onclick = onClick;
-
+        this._button.setAttribute("type", "button");
+        this._button.value = "勤怠入力"
         this._button.style.marginLeft = "10px";
+
+        this._button.onclick = function () {
+            const start = (<HTMLSelectElement>document.getElementsByName("_start")[0]).value
+            const end = (<HTMLSelectElement>document.getElementsByName("_end")[0]).value
+            const telework = (<HTMLInputElement>document.getElementsByName("_telework")[0]).checked
+
+            clearCostManagement();
+
+            const workTime = new WorkTime(start, end);
+            // 作業時間
+            let totalQuantity: HTMLInputElement = <HTMLInputElement>document.getElementById('total-quantity-header');
+            totalQuantity.value = ''; // 一旦初期化
+
+            // 始業時刻
+            let startTime: HTMLInputElement = <HTMLInputElement>document.getElementById('attendanceStartTimeCheck');
+            startTime.value = start;
+
+            //終業時刻
+            let endTime: HTMLInputElement = <HTMLInputElement>document.getElementById('attendanceEndTimeCheck');
+            endTime.value = workTime.calcEndTime();
+
+            // 勤務区分
+            let workDivision: HTMLSelectElement = <HTMLSelectElement>document.getElementById('workDivisionSelect');
+            const idx = KinmuClass.get(start);
+            workDivision.selectedIndex = typeof idx === "number" ? idx : 6;
+
+            // 作番
+            let costNoItem: HTMLSelectElement = <HTMLSelectElement>document.getElementsByName('costManagement[0].inputSelect')[0];
+            costNoItem.selectedIndex = 1;
+
+            // 作業コード
+            let costDetailCode: HTMLInputElement = <HTMLInputElement>document.getElementsByName('costManagement[0].inputCode')[0]
+            costDetailCode.value = '0001';
+
+            // 作業時間
+            let costQuantity: HTMLInputElement = <HTMLInputElement>document.getElementsByName('costManagement[0].inputValue')[0]
+            costQuantity.value = workTime.calcWorkTime();
+            totalQuantity.value = workTime.calcWorkTime();
+
+            // 回数項目
+            let allowanceItem: HTMLSelectElement = <HTMLSelectElement>document.getElementsByName('allowanceItemManagement[0].inputSelect')[0]
+            // 回数
+            let allowanceItemValue: HTMLInputElement = <HTMLInputElement>document.getElementsByName('allowanceItemManagement[0].inputValue')[0]
+            if (!telework) {
+                allowanceItem.selectedIndex = 0;
+                allowanceItemValue.value = '';
+            } else {
+                allowanceItem.selectedIndex = 1; // テレワーク
+                allowanceItemValue.value = '1';
+            }
+        }
     }
 };
 
-function onClick(event: Event): void {
-    const start = (<HTMLSelectElement>document.getElementsByName("_start")[0]).value
-    const end = (<HTMLSelectElement>document.getElementsByName("_end")[0]).value
-    const telework = (<HTMLInputElement>document.getElementsByName("_telework")[0]).checked
-
-    clearSelectedIndex(document.getElementsByName('CostNoItem'));
-    clearValue(document.getElementsByName('CostDetailCode'));
-    clearValue(document.getElementsByName('CostQuantity'));
-
-    const workTime = new WorkTime(start, end);
-    // 作業時間
-    let totalQuantity: HTMLInputElement = <HTMLInputElement>document.getElementById('TotalQuantity');
-    totalQuantity.value = ''; // 一旦初期化
-
-    // 始業時刻
-    let startTime: HTMLInputElement = <HTMLInputElement>document.getElementsByName('StartTime')[0];
-    startTime.value = start;
-
-    //終業時刻
-    let endTime: HTMLInputElement = <HTMLInputElement>document.getElementsByName('EndTime')[0];
-    endTime.value = workTime.calcEndTime();
-
-    // 勤務区分
-    let workDivision: HTMLSelectElement = <HTMLSelectElement>document.getElementsByName('WorkDivision')[0]
-    const idx = KinmuClass.get(start);
-    workDivision.selectedIndex = typeof idx === "number" ? idx : 6;
-
-    // 作番
-    let costNoItem: HTMLSelectElement = <HTMLSelectElement>document.getElementsByName('CostNoItem')[0];
-    costNoItem.selectedIndex = 1;
-
-    // 作業コード
-    let costDetailCode: HTMLInputElement = <HTMLInputElement>document.getElementsByName('CostDetailCode')[0]
-    costDetailCode.value = '0001';
-
-    // 作業時間
-    let costQuantity: HTMLInputElement = <HTMLInputElement>document.getElementsByName('CostQuantity')[0]
-    costQuantity.value = workTime.calcWorkTime();
-    totalQuantity.value = workTime.calcWorkTime();
-
-    // 回数項目
-    let allowanceItem: HTMLSelectElement = <HTMLSelectElement>document.getElementsByName('AllowanceItem')[0]
-    // 回数
-    let allowanceItemValue: HTMLInputElement = <HTMLInputElement>document.getElementsByName('AllowanceItemValue')[0]
-    if (!telework) {
-        allowanceItem.selectedIndex = 0;
-        allowanceItemValue.value = '';
-    } else {
-        allowanceItem.selectedIndex = 1; // テレワーク
-        allowanceItemValue.value = '1';
+function clearCostManagement(): void {
+    for (let i = 0; i <= 9; i++) {
+        // 作番
+        let sakuban: HTMLSelectElement = <HTMLSelectElement>document.getElementsByName('costManagement[' + i + '].inputSelect')[0];
+        sakuban.selectedIndex = 0;
+        // 作業コード
+        let code: HTMLInputElement = <HTMLInputElement>document.getElementsByName('costManagement[' + i + '].inputCode')[0];
+        code.value = '';
+        // 作業時間
+        let time: HTMLInputElement = <HTMLInputElement>document.getElementsByName('costManagement[' + i + '].inputValue')[0];
+        time.value = '';
     }
-};
-
-function clearSelectedIndex(doms: NodeListOf<HTMLElement>): void {
-    [...doms].forEach(function (dom) {
-        let d: HTMLSelectElement = <HTMLSelectElement>dom
-        d.selectedIndex = 0;
-    });
-};
-
-function clearValue(doms: NodeListOf<HTMLElement>): void {
-    [...doms].forEach(function (dom) {
-        let d: HTMLInputElement = <HTMLInputElement>dom;
-        d.value = '';
-    });
-};
+}
 
 class WorkTime {
     private _start: Date
