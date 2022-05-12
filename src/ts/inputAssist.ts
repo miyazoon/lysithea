@@ -105,7 +105,7 @@ export class InputAssist {
 
             const workTime = new WorkTime(start, end);
             // 作業時間
-            let totalQuantity: HTMLInputElement = <HTMLInputElement>document.getElementById('total-quantity-header');
+            let totalQuantity: HTMLInputElement = <HTMLInputElement>document.getElementById('TotalQuantity');
             totalQuantity.value = ''; // 一旦初期化
 
             // 始業時刻
